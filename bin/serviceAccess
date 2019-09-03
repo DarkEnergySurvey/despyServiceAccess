@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+"""
+	serviceAccess -- print  information from a service access file
+
+	syntax: serviceAccess [-l] [-f file] [-s section | -t tag] format
+
+	Format is a string format string drawing items from a python 
+        dictionary. Python dictionary formats are of the form 
+        %(key-i-ndictionary)s .
+ 
+        Example: Format  "%(server)s:%(port)s" would print DESTEST:1521 if 
+        server were DESTEST and port were 1521.
+
+        Options:
+	
+	-f file specifies a service access file. If absent the defaulting rules
+	   in DESDM 3 are to find a file.
+
+        -t tag specifies a tag, defined in DESDM-3. When -s is absent, -t is
+           used to sense the environment for a section. Tags are upper cased.
+           tag is use to provide any tag-specific processing of the file, for
+           example -t db causes the program to supply database related defaults.
+
+        -s section specifies a section in file to be used for formatting the 
+           format string. 
+
+        -l specifies loose checking of the service access file.
+	
+"""
+
+if __name__ == "__main__":
+    import sys
+    import despyserviceaccess.serviceaccess as serviceaccess
+    from  optparse import OptionParser
+
+    parser = OptionParser(usage=__doc__)
+    parser.add_option("-f", "--file", dest="filename",
+                      help="serviceaccess file.")
+    parser.add_option("-s", "--section", dest="section",
+                      help="section in file to use")
+    parser.add_option("-t", "--tage", dest="tag",
+                      help="serviceaccess file.")
+    parser.add_option("-l", "--loose",  action="store_true", dest="loose",
+                      help="minimal check service access file")
+    (options, args) = parser.parse_args()
+
+
+    if len(args) != 1 or (not options.tag and not options.section):
+        print __doc__
+        sys.exit(1)
+    format = args[0]
+
+    filename = options.filename
+    keys = serviceaccess.parse(options.filename, options.section, options.tag)
+    if not options.loose : serviceaccess.check(keys, options.tag)
+    print format % keys
+    sys.exit(0)
