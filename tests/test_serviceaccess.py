@@ -1,11 +1,11 @@
 #!/usr/bin/env python2
 import os
-import despyserviceaccess.serviceaccess as serviceaccess
 import unittest
 import stat
 import sys
-import re
 import subprocess
+#from mock import patch
+import despyserviceaccess.serviceaccess as serviceaccess
 
 def getLinesFromShellCommand (command):
     "execute a shell command return stdout, stderr as two arrays of lines."
@@ -70,11 +70,9 @@ serverr = sevrver   ; example of mis-spelled keyword
         self.minimal = serviceaccess.parse(self.filename, "db-minimal", "db")
         self.empty   = serviceaccess.parse(self.filename, "db-empty", "db")
         self.extra   = serviceaccess.parse(self.filename, "db-extra", "db")
-        return
 
     def tearDown(self):
         os.unlink(self.filename)
-        return
 
     def test_python_maximal_keys(self):
         """  test database with all keys specified"""
@@ -85,12 +83,10 @@ serverr = sevrver   ; example of mis-spelled keyword
         self.assertEqual(self.maximal["sid"],    "maximal_sid")
         self.assertEqual(self.maximal["port"],   "5432")
         self.assertEqual(self.maximal["server"], "maximal_server")
-        return
 
     def test_python_maximal_assert(self):
         """ Test that checkign a proper file throws no errors """
         serviceaccess.check(self.maximal,"db")
-        return
 
     def test_python_minimal(self):
         """ Test that a db file wit hminimal keys gives full informaion.
@@ -118,9 +114,6 @@ serverr = sevrver   ; example of mis-spelled keyword
     def test_python_minimal_assert(self):
         """ test that check function passed a clean file"""
         serviceaccess.check(self.minimal,"db")
-        return
-
-
 
 
 class TestSectionsFromEnv(unittest.TestCase):
@@ -148,8 +141,8 @@ key  =     akey
     def test_via_env_good(self):
         """test python gettion section form the environment"""
         os.environ["DES_DB_SECTION"] = self.section
-        d = serviceaccess.parse(self.filename, None, "db")
-        d = serviceaccess.parse(self.filename, "", "db")
+        _ = serviceaccess.parse(self.filename, None, "db")
+        _ = serviceaccess.parse(self.filename, "", "db")
 
     def test_via_env_bad(self):
         """ test that fault arises when environment names section not in teh file"""
@@ -163,32 +156,21 @@ key  =     akey
         self.assertTrue(assert_fired)
 
     def test_with_env_bad_and_filename_good(self):
-        """test that passed in fiel name trumps environment"""
+        """test that passed in file name trumps environment"""
         os.environ["DES_SERVICES"] = "no/file/here"
         serviceaccess.parse(self.filename, self.section, "db")
 
     def test_with_no_file_HOME(self):
         """ test errors is raise if HOME in error"""
         os.environ["HOME"] = "no/file/here"
-        import ConfigParser
-        try:
+        with self.assertRaises(IOError):
             serviceaccess.parse(None, self.section, "db")
-        except IOError:
-            pass   #expect this exception
-        else:
-            raise "help"
 
     def test_HOME(self):
         """ test file in HOME area is found in python library"""
         os.environ["HOME"] = "./"
         d = serviceaccess.parse(None, self.section, "DB")
         self.assertEqual(d['key'],'akey')
-
-#    def test_C_HOME(self):
-#        """test file is foudn in HOME in C librayr"""
-#        cmd = '(export HOME=`pwd`; ./test_svc_parse -v -C meta_section aKey "")'
-#        self.assertEqual(getLinesFromShellCommand (cmd)[0][0],'aKey')
-
 
 
 class TestBadPermissions(unittest.TestCase):
@@ -231,12 +213,12 @@ class TestCornerCases(unittest.TestCase):
 ;
 
 [db-maximal]
-USER=maximal_user
 PASSWD  =   maximal_passwd
 name    =   maximal_name_1    ; if repeated last name wins
 name    =   maximal_name      ; if repeated key, last one wins
 Sid     =   maximal_sid       ;comment glued onto value not allowed
 type    =   POSTgres
+blah    =   blah
 server  =   maximal_server
 
 [db-minimal]
@@ -272,6 +254,18 @@ serverr = sevrver   ; example of mis-spelled keyword
             self.assertTrue('faulty' in str(ex))
         else:
             self.assertFalse(True)
+
+    def test_badFileNameWithRetry(self):
+        with self.assertRaises(IOError):
+            serviceaccess.parse('blah', 'db-sec', 'db', True)
+
+    def test_notDb(self):
+        self.minimal = serviceaccess.parse(self.filename, "db-minimal")
+
+    def test_python_maximal_assert(self):
+        """ Test that checkign a proper file throws no errors """
+        with self.assertRaises(serviceaccess.ServiceaccessException):
+            serviceaccess.check(serviceaccess.parse(self.filename, 'db-maximal',"db"), 'db')
 
     def tearDown(self):
         os.unlink(self.filename)
