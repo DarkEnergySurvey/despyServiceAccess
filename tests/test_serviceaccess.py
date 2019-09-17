@@ -222,9 +222,6 @@ key  =     akey
         except serviceaccess.ServiceaccessException:
             pass
 
-if __name__ == '__main__':
-    unittest.main()
-
 class TestCornerCases(unittest.TestCase):
     def setUp(self):
         self.text = """
@@ -275,3 +272,10 @@ serverr = sevrver   ; example of mis-spelled keyword
             self.assertTrue('faulty' in str(ex))
         else:
             self.assertFalse(True)
+
+    def tearDown(self):
+        os.unlink(self.filename)
+        return
+
+if __name__ == '__main__':
+    unittest.main()
