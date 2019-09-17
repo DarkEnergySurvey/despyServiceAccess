@@ -15,7 +15,6 @@ Check supplies chaking of entries as specified in DESDM-3
 """
 
 import os
-import sys
 import time
 import subprocess
 
@@ -31,17 +30,17 @@ class ServiceaccessException(Exception):
 expectedkeys = ("meta_section", "meta_file")
 expected_db_keys = ("user", "passwd", "type", "port", "server", "name", "sid", "meta_section", "meta_file", "service")
 
-def parse(file, section, tag=None, retry=False):
+def parse(file_name, section, tag=None, retry=False):
     """parse a serviceaccess file, return a dictionary of keys  section supplimented by defaults indicated by tag
 
     provide two extra dictionary entries,
          meta_file     indicating the file actually used.
          meta_section  indicating the section actually used. """
 
-    if not file:
-        file = os.getenv("DES_SERVICES")
-    if not file:
-        file = os.path.join(os.getenv("HOME"), ".desservices.ini")
+    if not file_name:
+        file_name = os.getenv("DES_SERVICES")
+    if not file_name:
+        file_name = os.path.join(os.getenv("HOME"), ".desservices.ini")
     if not section and tag:
         section = os.getenv("DES_%s_SECTION" % tag.upper())
     if not section:
@@ -60,7 +59,7 @@ def parse(file, section, tag=None, retry=False):
     while not success and trycnt <= maxtries:
         trycnt += 1
         try:
-            open(file)
+            open(file_name)
             success = True
         except IOError as exc:
             if trycnt < maxtries:
@@ -68,25 +67,24 @@ def parse(file, section, tag=None, retry=False):
                 print "Sleeping for %s seconds and retrying" % delay
                 try:
                     # try triggering automount
-                    process = subprocess.Popen(['ls', '-l', file], shell=False,
+                    process = subprocess.Popen(['ls', '-l', file_name], shell=False,
                                                stdout=subprocess.PIPE,
                                                stderr=subprocess.STDOUT)
                     process.wait()
                     #print process.communicate()
-                except:
+                except Exception:
                     pass
                 time.sleep(delay)
-
-    if not success:
-        raise
+            else:
+                raise
 
 
     import ConfigParser
     c = ConfigParser.RawConfigParser()
-    c.read(file)
+    c.read(file_name)
     d = {}
     [d.__setitem__(key, value) for (key, value) in c.items(section)]
-    d["meta_file"] = file
+    d["meta_file"] = file_name
     d["meta_section"] = section
 
     if tag and tag.lower() == "db":
@@ -95,7 +93,6 @@ def parse(file, section, tag=None, retry=False):
 
 def check(d, tag=None):
     "raise execption if file or indicated keys inconsistent with DESDM-3."
-    import os
     import stat
     permission_faults = []
     permission_checks = (("other_read", stat.S_IROTH), ("other_write", stat.S_IWOTH),
@@ -127,8 +124,8 @@ def _check_db(d):
     "suppliment chack with  DB specific rules."
     missing = []
     extra = []
-    file = d["meta_file"]
-    section = d["meta_section"]
+    _ = d["meta_file"]
+    _ = d["meta_section"]
     for key in ("user", "passwd", "type", "port", "server"):
         if key not in d.keys():
             missing.append(key)
