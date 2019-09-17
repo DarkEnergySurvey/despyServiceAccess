@@ -4,7 +4,7 @@ import unittest
 import stat
 import sys
 import subprocess
-#from mock import patch
+from mock import patch
 import despyserviceaccess.serviceaccess as serviceaccess
 
 def getLinesFromShellCommand (command):
@@ -266,6 +266,11 @@ serverr = sevrver   ; example of mis-spelled keyword
         """ Test that checkign a proper file throws no errors """
         with self.assertRaises(serviceaccess.ServiceaccessException):
             serviceaccess.check(serviceaccess.parse(self.filename, 'db-maximal',"db"), 'db')
+
+    def testbadFileNameWithProcessError(self):
+        with patch('despyserviceaccess.serviceaccess.subprocess.Popen', side_effect=Exception()):
+            with self.assertRaises(IOError):
+                serviceaccess.parse('blah', 'db-sec', 'db', True)
 
     def tearDown(self):
         os.unlink(self.filename)
