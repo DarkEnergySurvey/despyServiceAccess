@@ -34,8 +34,9 @@ class test_db_section2(unittest.TestCase):
        ... comments glued onto values
        ... repeated keyword (last repetition "wins"
     """
-    def setUp(self):
-        self.text = """
+    @classmethod
+    def setUpClass(cls):
+        cls.text = """
 ;
 ;  initial comments in file
 ;comment line with comment marker not in column 1 not allowed
@@ -63,16 +64,17 @@ serverr = sevrver   ; example of mis-spelled keyword
 [db-empty]
 ; empty section
 """
-        self.filename = "wellformed.ini"
-        open(self.filename,"w").write(self.text)
-        protect_file(self.filename)
-        self.maximal = serviceaccess.parse(self.filename, "db-maximal", "dB")
-        self.minimal = serviceaccess.parse(self.filename, "db-minimal", "db")
-        self.empty   = serviceaccess.parse(self.filename, "db-empty", "db")
-        self.extra   = serviceaccess.parse(self.filename, "db-extra", "db")
+        cls.filename = "wellformed.ini"
+        open(cls.filename,"w").write(cls.text)
+        protect_file(cls.filename)
+        cls.maximal = serviceaccess.parse(cls.filename, "db-maximal", "dB")
+        cls.minimal = serviceaccess.parse(cls.filename, "db-minimal", "db")
+        cls.empty   = serviceaccess.parse(cls.filename, "db-empty", "db")
+        cls.extra   = serviceaccess.parse(cls.filename, "db-extra", "db")
 
-    def tearDown(self):
-        os.unlink(self.filename)
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(cls.filename)
 
     def test_python_maximal_keys(self):
         """  test database with all keys specified"""
@@ -120,23 +122,23 @@ class TestSectionsFromEnv(unittest.TestCase):
     """
     test that we can find tag-specific sections from the environment.
     """
-    def setUp(self):
-        self.text = """
+    @classmethod
+    def setUpClass(cls):
+        cls.text = """
 
 [db-minimal]
 key  =     akey
 """
-        self.filename = ".desservices.ini"
-        self.section = "db-minimal"
-        open(self.filename,"w").write(self.text)
-        protect_file(self.filename)
+        cls.filename = ".desservices.ini"
+        cls.section = "db-minimal"
+        open(cls.filename,"w").write(cls.text)
+        protect_file(cls.filename)
         if os.environ.has_key("DES_DB_SECTION") : del os.environ["DES_DB_SECTION"]
-        return
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         if os.environ.has_key("DES_DB_SECTION") : del os.environ["DES_DB_SECTION"]
         #os.unlink(self.filename)
-        return
 
     def test_via_env_good(self):
         """test python gettion section form the environment"""
@@ -181,20 +183,20 @@ class TestBadPermissions(unittest.TestCase):
     ... Cannot open when filename bad but env good
     ... cnoot open when file bad and env bad
     """
-    def setUp(self):
-        self.text = """
+    @classmethod
+    def setUpClass(cls):
+        cls.text = """
 [minimal]
 key  =     akey
 """
-        self.filename = "nameresolution.desdm"
-        self.section = "minimal"
-        open(self.filename,"w").write(self.text)
-        os.chmod(self.filename, 0xffff)
-        return
+        cls.filename = "nameresolution.desdm"
+        cls.section = "minimal"
+        open(cls.filename,"w").write(cls.text)
+        os.chmod(cls.filename, 0xffff)
 
-    def tearDown(self):
-        os.unlink(self.filename)
-        return
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(cls.filename)
 
     def test_detect_permission(self):
         """ test python API detect mal formed permissions """
@@ -205,8 +207,9 @@ key  =     akey
             pass
 
 class TestCornerCases(unittest.TestCase):
-    def setUp(self):
-        self.text = """
+    @classmethod
+    def setUpClass(cls):
+        cls.text = """
 ;
 ;  initial comments in file
 ;comment line with comment marker not in column 1 not allowed
@@ -234,9 +237,9 @@ serverr = sevrver   ; example of mis-spelled keyword
 [db-empty]
 ; empty section
 """
-        self.filename = "wellformed.ini"
-        open(self.filename,"w").write(self.text)
-        protect_file(self.filename)
+        cls.filename = "wellformed.ini"
+        open(cls.filename,"w").write(cls.text)
+        protect_file(cls.filename)
 
     def test_Exception(self):
         msg = "Test of ServiceacessException"
@@ -272,9 +275,9 @@ serverr = sevrver   ; example of mis-spelled keyword
             with self.assertRaises(IOError):
                 serviceaccess.parse('blah', 'db-sec', 'db', True)
 
-    def tearDown(self):
-        os.unlink(self.filename)
-        return
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(cls.filename)
 
 if __name__ == '__main__':
     unittest.main()
