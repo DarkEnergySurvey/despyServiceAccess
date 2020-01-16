@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Support a service access file as described in DESDM-3
 
@@ -19,7 +18,7 @@ import time
 import subprocess
 
 class ServiceaccessException(Exception):
-    "class for any file-content, + null fle name"
+    """ class for any file-content, + null fle name"""
     def __init__(self, txt):
         Exception.__init__(self)
         self.txt = txt
@@ -42,9 +41,9 @@ def parse(file_name, section, tag=None, retry=False):
     if not file_name:
         file_name = os.path.join(os.getenv("HOME"), ".desservices.ini")
     if not section and tag:
-        section = os.getenv("DES_%s_SECTION" % tag.upper())
+        section = os.getenv(f"DES_{tag.upper()}_SECTION")
     if not section:
-        raise ServiceaccessException('faulty section: %s' % section)
+        raise ServiceaccessException(f'faulty section: {section}')
 
     # config parser throws "no section error" if file does not exist....
     # ... That's Confusing. so do an open to get a more understandable error.
@@ -63,8 +62,8 @@ def parse(file_name, section, tag=None, retry=False):
             success = True
         except IOError as exc:
             if trycnt < maxtries:
-                print "IOError: %s" % exc
-                print "Sleeping for %s seconds and retrying" % delay
+                print(f"IOError: {exc}")
+                print(f"Sleeping for {delay} seconds and retrying")
                 try:
                     # try triggering automount
                     process = subprocess.Popen(['ls', '-l', file_name], shell=False,
@@ -79,8 +78,8 @@ def parse(file_name, section, tag=None, retry=False):
                 raise
 
 
-    import ConfigParser
-    c = ConfigParser.RawConfigParser()
+    import configparser
+    c = configparser.RawConfigParser()
     c.read(file_name)
     d = {}
     [d.__setitem__(key, value) for (key, value) in c.items(section)]
@@ -106,7 +105,6 @@ def check(d, tag=None):
     if tag and tag.lower() == "db":
         _check_db(d)
 
-    return
 
 def _process_db(d):
     "suppliment db section supplimented with DB defaults."
@@ -127,12 +125,11 @@ def _check_db(d):
     _ = d["meta_file"]
     _ = d["meta_section"]
     for key in ("user", "passwd", "type", "port", "server"):
-        if key not in d.keys():
+        if key not in d:
             missing.append(key)
     for key in d.keys():
         if key not in expected_db_keys:
             extra.append(key)
     check(d)
     if missing or extra:
-        raise ServiceaccessException("faulty keys : %s   %s" % (missing, extra))
-    return
+        raise ServiceaccessException(f"faulty keys : {missing} {extra}")

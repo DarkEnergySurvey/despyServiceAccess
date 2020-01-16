@@ -11,4 +11,4 @@ mkdir -p $PRODUCT_DIR
 #cd $PRODUCT
 export PYTHONPATH=$PYTHONPATH:$PRODUCT_DIR/python
 export PATH=$PATH:$PRODUCT_DIR/bin
-python setup.py install --prefix=$PRODUCT_DIR --install-lib=$PRODUCT_DIR/python
+python3 setup.py install --prefix=$PRODUCT_DIR --install-lib=$PRODUCT_DIR/python
