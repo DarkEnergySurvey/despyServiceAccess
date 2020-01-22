@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import os
 import unittest
 import stat
@@ -7,13 +7,14 @@ import subprocess
 from mock import patch
 import despyserviceaccess.serviceaccess as serviceaccess
 
-def getLinesFromShellCommand (command):
+def getLinesFromShellCommand(command):
     "execute a shell command return stdout, stderr as two arrays of lines."
     # thow error if shell level error
     p = subprocess.Popen(command, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     p.wait()
-    if p.returncode !=0 :
-        for  l in  p.stderr.readlines(): print l.rstrip()
+    if p.returncode != 0:
+        for l in p.stderr.readlines():
+            print(l.rstrip())
         sys.exit(p.returncode)
     stdout = [s.rstrip() for s in p.stdout.readlines()] #kill newlines
     stderr = [s.rstrip() for s in p.stderr.readlines()]
@@ -45,9 +46,8 @@ class test_db_section2(unittest.TestCase):
 [db-maximal]
 USER=maximal_user
 PASSWD  =   maximal_passwd
-name    =   maximal_name_1    ; if repeated last name wins
-name    =   maximal_name      ; if repeated key, last one wins
-Sid     =   maximal_sid       ;comment glued onto value not allowed
+name    =   maximal_name
+Sid     =   maximal_sid
 type    =   POSTgres
 server  =   maximal_server
 
@@ -59,18 +59,18 @@ sid     =   Minimal_sid
 server  =   Minimal_server
 
 [db-extra]
-serverr = sevrver   ; example of mis-spelled keyword
+serverr = sevrver
 
 [db-empty]
 ; empty section
 """
         cls.filename = "wellformed.ini"
-        open(cls.filename,"w").write(cls.text)
+        open(cls.filename, "w").write(cls.text)
         protect_file(cls.filename)
         cls.maximal = serviceaccess.parse(cls.filename, "db-maximal", "dB")
         cls.minimal = serviceaccess.parse(cls.filename, "db-minimal", "db")
-        cls.empty   = serviceaccess.parse(cls.filename, "db-empty", "db")
-        cls.extra   = serviceaccess.parse(cls.filename, "db-extra", "db")
+        cls.empty = serviceaccess.parse(cls.filename, "db-empty", "db")
+        cls.extra = serviceaccess.parse(cls.filename, "db-extra", "db")
 
     @classmethod
     def tearDownClass(cls):
@@ -78,17 +78,17 @@ serverr = sevrver   ; example of mis-spelled keyword
 
     def test_python_maximal_keys(self):
         """  test database with all keys specified"""
-        self.assertEqual(self.maximal["user"],   "maximal_user")
+        self.assertEqual(self.maximal["user"], "maximal_user")
         self.assertEqual(self.maximal["passwd"], "maximal_passwd")
-        self.assertEqual(self.maximal["type"],   "postgres")
-        self.assertEqual(self.maximal["name"],   "maximal_name")
-        self.assertEqual(self.maximal["sid"],    "maximal_sid")
-        self.assertEqual(self.maximal["port"],   "5432")
+        self.assertEqual(self.maximal["type"], "postgres")
+        self.assertEqual(self.maximal["name"], "maximal_name")
+        self.assertEqual(self.maximal["sid"], "maximal_sid")
+        self.assertEqual(self.maximal["port"], "5432")
         self.assertEqual(self.maximal["server"], "maximal_server")
 
     def test_python_maximal_assert(self):
         """ Test that checkign a proper file throws no errors """
-        serviceaccess.check(self.maximal,"db")
+        serviceaccess.check(self.maximal, "db")
 
     def test_python_minimal(self):
         """ Test that a db file wit hminimal keys gives full informaion.
@@ -99,23 +99,23 @@ serverr = sevrver   ; example of mis-spelled keyword
           -- that valuse are case preserving (expect for db_type)
           -- ... except db_type is retured stanardized to lower case.
         """
-        self.assertEqual(self.minimal["user"],   "Minimal_user")
+        self.assertEqual(self.minimal["user"], "Minimal_user")
         self.assertEqual(self.minimal["passwd"], "Minimal_passwd")
-        self.assertEqual(self.minimal["type"],   "oracle")
-        self.assertEqual(self.minimal["name"],   "Minimal_name")
-        self.assertEqual(self.minimal["port"],   "1521")
+        self.assertEqual(self.minimal["type"], "oracle")
+        self.assertEqual(self.minimal["name"], "Minimal_name")
+        self.assertEqual(self.minimal["port"], "1521")
 
     def test_SHELL_section_via_env_good(self):
         " test that the SHELL API can obtain section from the environment"""
         section = "db-minimal"
         cmd = '(export DES_DB_SECTION=%s; serviceAccess  -t db -f %s "%%(%s)s")' % (
             section, self.filename, "meta_section")
-        self.assertEqual(getLinesFromShellCommand (cmd)[0][0], section)
+        self.assertEqual(getLinesFromShellCommand(cmd)[0][0].decode(), section)
 
 
     def test_python_minimal_assert(self):
         """ test that check function passed a clean file"""
-        serviceaccess.check(self.minimal,"db")
+        serviceaccess.check(self.minimal, "db")
 
 
 class TestSectionsFromEnv(unittest.TestCase):
@@ -131,13 +131,15 @@ key  =     akey
 """
         cls.filename = ".desservices.ini"
         cls.section = "db-minimal"
-        open(cls.filename,"w").write(cls.text)
+        open(cls.filename, "w").write(cls.text)
         protect_file(cls.filename)
-        if os.environ.has_key("DES_DB_SECTION") : del os.environ["DES_DB_SECTION"]
+        if "DES_DB_SECTION" in os.environ:
+            del os.environ["DES_DB_SECTION"]
 
     @classmethod
     def tearDownClass(cls):
-        if os.environ.has_key("DES_DB_SECTION") : del os.environ["DES_DB_SECTION"]
+        if "DES_DB_SECTION" in os.environ:
+            del os.environ["DES_DB_SECTION"]
         #os.unlink(self.filename)
 
     def test_via_env_good(self):
@@ -149,11 +151,11 @@ key  =     akey
     def test_via_env_bad(self):
         """ test that fault arises when environment names section not in teh file"""
         os.environ["DES_DB_SECTION"] = "some-non-existing section"
-        import ConfigParser
+        import configparser
         assert_fired = False
         try:
             serviceaccess.parse(self.filename, None, "db")
-        except ConfigParser.NoSectionError:
+        except configparser.NoSectionError:
             assert_fired = True
         self.assertTrue(assert_fired)
 
@@ -172,7 +174,7 @@ key  =     akey
         """ test file in HOME area is found in python library"""
         os.environ["HOME"] = "./"
         d = serviceaccess.parse(None, self.section, "DB")
-        self.assertEqual(d['key'],'akey')
+        self.assertEqual(d['key'], 'akey')
 
 
 class TestBadPermissions(unittest.TestCase):
@@ -191,7 +193,7 @@ key  =     akey
 """
         cls.filename = "nameresolution.desdm"
         cls.section = "minimal"
-        open(cls.filename,"w").write(cls.text)
+        open(cls.filename, "w").write(cls.text)
         os.chmod(cls.filename, 0xffff)
 
     @classmethod
@@ -201,8 +203,8 @@ key  =     akey
     def test_detect_permission(self):
         """ test python API detect mal formed permissions """
         d = serviceaccess.parse(self.filename, self.section, "DB")
-        try :
-            serviceaccess.check(d,"db")
+        try:
+            serviceaccess.check(d, "db")
         except serviceaccess.ServiceaccessException:
             pass
 
@@ -217,9 +219,8 @@ class TestCornerCases(unittest.TestCase):
 
 [db-maximal]
 PASSWD  =   maximal_passwd
-name    =   maximal_name_1    ; if repeated last name wins
-name    =   maximal_name      ; if repeated key, last one wins
-Sid     =   maximal_sid       ;comment glued onto value not allowed
+name    =   maximal_name
+Sid     =   maximal_sid
 type    =   POSTgres
 blah    =   blah
 server  =   maximal_server
@@ -232,13 +233,13 @@ sid     =   Minimal_sid
 server  =   Minimal_server
 
 [db-extra]
-serverr = sevrver   ; example of mis-spelled keyword
+serverr = sevrver
 
 [db-empty]
 ; empty section
 """
         cls.filename = "wellformed.ini"
-        open(cls.filename,"w").write(cls.text)
+        open(cls.filename, "w").write(cls.text)
         protect_file(cls.filename)
 
     def test_Exception(self):
@@ -268,7 +269,7 @@ serverr = sevrver   ; example of mis-spelled keyword
     def test_python_maximal_assert(self):
         """ Test that checkign a proper file throws no errors """
         with self.assertRaises(serviceaccess.ServiceaccessException):
-            serviceaccess.check(serviceaccess.parse(self.filename, 'db-maximal',"db"), 'db')
+            serviceaccess.check(serviceaccess.parse(self.filename, 'db-maximal', "db"), 'db')
 
     def testbadFileNameWithProcessError(self):
         with patch('despyserviceaccess.serviceaccess.subprocess.Popen', side_effect=Exception()):
