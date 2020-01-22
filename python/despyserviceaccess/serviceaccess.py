@@ -16,6 +16,8 @@ Check supplies chaking of entries as specified in DESDM-3
 import os
 import time
 import subprocess
+import stat
+import configparser
 
 class ServiceaccessException(Exception):
     """ class for any file-content, + null fle name"""
@@ -77,12 +79,10 @@ def parse(file_name, section, tag=None, retry=False):
             else:
                 raise
 
-
-    import configparser
     c = configparser.RawConfigParser()
     c.read(file_name)
     d = {}
-    [d.__setitem__(key, value) for (key, value) in c.items(section)]
+    _ = [d.__setitem__(key, value) for (key, value) in c.items(section)]
     d["meta_file"] = file_name
     d["meta_section"] = section
 
@@ -92,7 +92,6 @@ def parse(file_name, section, tag=None, retry=False):
 
 def check(d, tag=None):
     "raise execption if file or indicated keys inconsistent with DESDM-3."
-    import stat
     permission_faults = []
     permission_checks = (("other_read", stat.S_IROTH), ("other_write", stat.S_IWOTH),
                          ("group_write", stat.S_IWGRP))
