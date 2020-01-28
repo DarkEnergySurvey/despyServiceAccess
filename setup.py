@@ -17,7 +17,7 @@ def test_services():
 
 # The main call
 setup(name='despyServiceAccess',
-      version ='2.0.2',
+      version ='3.0.0',
       license = "GPL",
       description = "Support a service access file as described in DESDM",
       author = "The National Center for Supercomputing Applications (NCSA)",

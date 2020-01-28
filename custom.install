@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 FLAVOR=`uname -s`
-VERSION=2.0.0
+VERSION=3.0.0
 PRODUCT=despyServiceAccess
 PRODUCT_DIR=$HOME/EUPS_LOCAL/eups/packages/$FAVOR/$PRODUCT/$VERSION
 
@@ -11,4 +11,4 @@ mkdir -p $PRODUCT_DIR
 #cd $PRODUCT
 export PYTHONPATH=$PYTHONPATH:$PRODUCT_DIR/python
 export PATH=$PATH:$PRODUCT_DIR/bin
-python setup.py install --prefix=$PRODUCT_DIR --install-lib=$PRODUCT_DIR/python
+python3 setup.py install --prefix=$PRODUCT_DIR --install-lib=$PRODUCT_DIR/python
