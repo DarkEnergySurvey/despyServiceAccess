@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 FLAVOR=`uname -s`
-VERSION=2.0.0
+VERSION=3.0.0
 PRODUCT=despyServiceAccess
 PRODUCT_DIR=$HOME/EUPS_LOCAL/eups/packages/$FAVOR/$PRODUCT/$VERSION
 
