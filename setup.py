@@ -10,7 +10,7 @@ def test_services():
     here = os.getcwd()
     os.chdir("tests")
     cmd = "./test_serviceaccess.py %s"  % unittestargs
-    print cmd
+    print(cmd)
     os.system(cmd)
     os.chdir(here)
     return
