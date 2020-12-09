@@ -29,7 +29,7 @@ class ServiceaccessException(Exception):
 
 
 expectedkeys = ("meta_section", "meta_file")
-expected_db_keys = ("user", "passwd", "type", "port", "server", "name", "sid", "meta_section", "meta_file", "service")
+expected_db_keys = ("user", "passwd", "type", "port", "server", "name", "sid", "meta_section", "meta_file", "service", "db_file", "home_dir")
 
 def parse(file_name, section, tag=None, retry=False):
     """parse a serviceaccess file, return a dictionary of keys  section supplimented by defaults indicated by tag
